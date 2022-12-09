@@ -18,6 +18,15 @@ import { auth } from './middlewares/auth.js';
 
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const allowedCors = [
+  'https://praktikum.tk',
+  'http://praktikum.tk',
+  'localhost:3001',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+  //
+];
+
 export const run = async (envName) => {
   process.on('unhandledRejection', (err) => {
     console.error(err);
@@ -46,9 +55,29 @@ export const run = async (envName) => {
 
   app.set('config', config);
   app.use(logger);
-  app.use(cookieParser());
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(cookieParser());
+  // CORS
+  app.use((req, res, next) => {
+    const { origin } = req.headers;
+
+    if (allowedCors.some((e) => e.test && e.test(origin)) || allowedCors.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', true);
+    }
+    const { method } = req;
+    const requestHeaders = req.headers['access-control-request-headers'];
+    const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
+
+    if (method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Methods', DEFAULT_ALLOWED_METHODS);
+      res.header('Access-Control-Allow-Headers', requestHeaders);
+      return res.end();
+    }
+
+    next();
+  });
 
   app.use('/', authRouter);
   app.use(auth);

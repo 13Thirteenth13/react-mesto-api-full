@@ -19,7 +19,7 @@ export const getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (user) {
-        res.send(user);
+        res.send(...user);
       } else {
         throw notFoundError;
       }
@@ -116,7 +116,7 @@ export const updateProfile = (req, res, next) => {
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { runValidators: true })
     .then((user) => res.send({
-      _id: [user._id],
+      _id: user._id,
       avatar: user.avatar,
       name,
       about,
