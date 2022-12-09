@@ -12,8 +12,6 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
-const jwt = localStorage.getItem("jwt");
-
 export const register = ({ email, password }) => {
   return fetch(`${BASE_URL}/signup`, {
     method: 'POST',

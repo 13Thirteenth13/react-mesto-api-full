@@ -35,6 +35,7 @@ function App() {
     about: "",
     avatar: "",
     _id: "",
+    email: "",
   });
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,24 +43,34 @@ function App() {
   const history = useHistory();
 
   useEffect(() => {
-    api.getInitialCards()
-      .then((data) => {
-        setCards(data)
-      })
-      .catch((err) => {
-        console.log(`Ошибка: ${err}`)
-      })
-  }, []);
+    handleTokenCheck();
+    if (isLoggedIn) {
+      Promise.all([api.getUserInfo(), api.getInitialCards()])
+        .then(([user, cards]) => {
+          setCurrentUser({ ...currentUser, ...user });
+          setCards(cards);
+        })
+        .catch((err) => {
+          console.log(`Ошибка: ${err}`)
+        })
+    }
+  }, [isLoggedIn]);
 
-  useEffect(() => {
-    api.getUserInfo()
-      .then(data => {
-        setCurrentUser(data)
+  const handleTokenCheck = () => {
+    const jwt = localStorage.getItem('jwt');
+    if (!jwt) {
+      return;
+    }
+    auth
+      .getContent(jwt)
+      .then(({ email }) => {
+        api.setHeadersAuth(jwt);
+        setAuthorizationEmail(email);
+        setIsLoggedIn(true);
+        history.push('/');
       })
-      .catch(err => {
-        console.log(err)
-      })
-  }, []);
+      .catch((err) => console.log(err));
+  };
 
   const handleEditAvatarClick = () => {
     setIsEditAvatarPopupOpen(!isEditAvatarPopupOpen);
@@ -160,7 +171,7 @@ function App() {
   const handleRegistration = (data) => {
     return auth
       .register(data)
-      .then((data) => {
+      .then(() => {
         setIsRegistrationSuccessful(true);
         handleInfoTooltip();
         history.push('/sign-in');
@@ -189,37 +200,11 @@ function App() {
   };
 
   const handleSignOut = () => {
-    setIsLoggedIn(false);
     localStorage.removeItem('jwt');
     api.setHeadersAuth("");
+    setIsLoggedIn(false);
     history.push('/sign-in');
   };
-
-  const handleTokenCheck = () => {
-    const jwt = localStorage.getItem('jwt');
-    if (!jwt) {
-      return;
-    }
-    auth
-      .getContent(jwt)
-      .then(({ email }) => {
-        api.setHeadersAuth(jwt);
-        setAuthorizationEmail(email);
-        setIsLoggedIn(true);
-        history.push('/');
-      })
-      .catch((err) => console.log(err));
-  };
-
-  useEffect(() => {
-    handleTokenCheck();
-  }, []);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      history.push('/');
-    }
-  }, [isLoggedIn]);
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
