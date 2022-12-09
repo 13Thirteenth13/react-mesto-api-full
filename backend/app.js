@@ -4,7 +4,8 @@ import mongoose from 'mongoose';
 import express from 'express';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
-import pino from 'pino-http';
+import winston from 'winston';
+import winstonExpress from 'express-winston';
 import { errors, isCelebrateError } from 'celebrate';
 import { constants } from 'http2';
 import { fileURLToPath } from 'url';
@@ -33,28 +34,37 @@ export const run = async (envName) => {
     process.exit(1);
   });
 
-  const config = dotenv.config({ path: path.resolve(__dirname, '.env.common') }).parsed;
+  const isProduction = envName.includes('prod');
+  const config = dotenv.config({
+    path: path.resolve(__dirname, (isProduction ? '.env' : '.env.common')),
+  }).parsed;
   if (!config) {
     throw new Error('Config не найден');
   }
   config.NODE_ENV = envName;
 
-  const app = express();
-  const loggerConfig = envName.includes('prod')
-    ? { level: config.LOG_LEVEL }
-    : {
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-        },
-      },
-      level: config.LOG_LEVEL,
-    };
-  const logger = pino(loggerConfig);
+  config.IS_PROD = isProduction;
 
+  const requestLogger = winstonExpress.logger({
+    transports: [
+      new winston.transports.File({
+        filename: path.resolve(__dirname, 'request.log'),
+      }),
+    ],
+    format: winston.format.json(),
+  });
+  const errorLogger = winstonExpress.errorLogger({
+    transports: [
+      new winston.transports.File({
+        filename: path.resolve(__dirname, 'error.log'),
+      }),
+    ],
+    format: winston.format.json(),
+  });
+
+  const app = express();
   app.set('config', config);
-  app.use(logger);
+  app.use(requestLogger);
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(cookieParser());
@@ -79,6 +89,11 @@ export const run = async (envName) => {
     next();
   });
 
+  app.get('/crash-test', () => {
+    setTimeout(() => {
+      throw new Error('Сервер сейчас упадёт');
+    }, 0);
+  });
   app.use('/', authRouter);
   app.use(auth);
   app.use('/users', userRouter);
@@ -87,11 +102,11 @@ export const run = async (envName) => {
   app.all('/*', (req, res, next) => {
     next(new NotFoundError('Запрашиваемая страница не найдена'));
   });
+  app.use(errorLogger);
   app.use((err, req, res, next) => {
     const isHttpError = err instanceof HTTPError;
     const isValidatorError = isCelebrateError(err);
 
-    req.log.debug(err);
     if (isHttpError) {
       res.status(err.statusCode).send({
         message: err.message,
