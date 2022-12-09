@@ -35,7 +35,6 @@ function App() {
     about: "",
     avatar: "",
     _id: "",
-    cohort: ""
   });
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -176,9 +175,9 @@ function App() {
   const handleAuthorization = (data) => {
     return auth
       .authorize(data)
-      .then((data) => {
+      .then(({ token }) => {
         setIsLoggedIn(true);
-        localStorage.setItem('jwt', data.token);
+        localStorage.setItem('jwt', token);
         handleTokenCheck();
         history.push('/');
       })
@@ -201,8 +200,8 @@ function App() {
     }
     auth
       .getContent(jwt)
-      .then((data) => {
-        setAuthorizationEmail(data.data.email);
+      .then(({ email }) => {
+        setAuthorizationEmail(email);
         setIsLoggedIn(true);
         history.push('/');
       })

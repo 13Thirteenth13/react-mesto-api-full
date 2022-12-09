@@ -15,6 +15,8 @@ class Api {
   //загрузка данных пользователя с сервера
   getUserInfo() {
     return fetch(`${this._url}/users/me`, {
+      method: "GET",
+      credentials: "include",
       headers: this._headers
     })
       .then((res) => this._checkServerResponse(res));
@@ -48,6 +50,8 @@ class Api {
   //загрузка карточек с сервера
   getInitialCards() {
     return fetch(`${this._url}/cards`, {
+      method: "GET",
+      credentials: "include",
       headers: this._headers
     })
       .then((res) => this._checkServerResponse(res));
@@ -87,9 +91,8 @@ class Api {
 };
 
 const api = new Api({
-  url: 'https://mesto.nomoreparties.co/v1/cohort-48',
+  url: 'http://localhost:3000',
   headers: {
-    authorization: '2e8fc64d-f56b-4a8b-9573-f07d48d61f79',
     'Content-Type': 'application/json'
   }
 });
