@@ -25,7 +25,7 @@ const allowedCors = [
   'localhost:3001',
   'http://localhost:3001',
   'http://127.0.0.1:3001',
-  //
+  /(https|http)?:\/\/(?:www\.|(?!www))13Thirteenth13.nomoredomains.club\/[a-z]+\/|[a-z]+\/|[a-z]+(\/|)/,
 ];
 
 export const run = async (envName) => {
@@ -72,9 +72,9 @@ export const run = async (envName) => {
   app.use((req, res, next) => {
     const { origin } = req.headers;
 
-    if (allowedCors.some((e) => e.test && e.test(origin)) || allowedCors.includes(origin)) {
+    if (allowedCors.some(e => e.test && e.test(origin)) || allowedCors.includes(origin)) {
       res.header('Access-Control-Allow-Origin', origin);
-      res.header('Access-Control-Allow-Credentials', true);
+      res.header('Access-Control-Allow-Credentials', true)
     }
     const { method } = req;
     const requestHeaders = req.headers['access-control-request-headers'];
