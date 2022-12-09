@@ -82,7 +82,7 @@ function App() {
   };
 
   const handleCardLike = (card) => {
-    const isLiked = card.likes.some((i) => i._id === currentUser._id);
+    const isLiked = card.likes.some((likeId) => likeId === currentUser._id);
     api.toggleLikeCard(card._id, !isLiked)
       .then((newCard) => {
         setCards((state) =>
@@ -178,6 +178,7 @@ function App() {
       .then(({ token }) => {
         setIsLoggedIn(true);
         localStorage.setItem('jwt', token);
+        api.setHeadersAuth(token);
         handleTokenCheck();
         history.push('/');
       })
@@ -190,6 +191,7 @@ function App() {
   const handleSignOut = () => {
     setIsLoggedIn(false);
     localStorage.removeItem('jwt');
+    api.setHeadersAuth("");
     history.push('/sign-in');
   };
 
@@ -201,6 +203,7 @@ function App() {
     auth
       .getContent(jwt)
       .then(({ email }) => {
+        api.setHeadersAuth(jwt);
         setAuthorizationEmail(email);
         setIsLoggedIn(true);
         history.push('/');

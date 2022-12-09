@@ -12,6 +12,8 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
+const jwt = localStorage.getItem("jwt");
+
 export const register = ({ email, password }) => {
   return fetch(`${BASE_URL}/signup`, {
     method: 'POST',
@@ -30,13 +32,13 @@ export const authorize = ({ email, password }) => {
   }).then((res) => checkResponse(res));
 };
 
-export const getContent = (token) => {
+export const getContent = (jwt) => {
   return fetch(`${BASE_URL}/users/me`, {
     method: 'GET',
     credentials: "include",
     headers: {
       ...headers,
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${jwt}`,
     },
   }).then((res) => checkResponse(res));
 };

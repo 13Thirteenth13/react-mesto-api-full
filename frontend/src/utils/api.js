@@ -1,6 +1,7 @@
 class Api {
   constructor(options) {
     this._url = options.url;
+    this._token = "";
     this._headers = options.headers;
   };
 
@@ -86,6 +87,10 @@ class Api {
       headers: this._headers
     })
       .then(res => this._checkServerResponse(res));
+  };
+
+  setHeadersAuth(token) {
+    this._headers = { ...this._headers, Authorization: `Bearer ${token}` };
   };
 
 };
