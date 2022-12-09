@@ -96,7 +96,7 @@ class Api {
 };
 
 const api = new Api({
-  url: 'http://localhost:3000',
+  url: 'https://api.13Thirteenth13.nomoredomains.club',
   headers: {
     'Content-Type': 'application/json'
   }

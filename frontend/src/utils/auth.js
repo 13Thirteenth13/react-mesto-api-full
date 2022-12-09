@@ -1,4 +1,4 @@
-export const BASE_URL = 'http://localhost:3000';
+export const BASE_URL = 'https://api.13Thirteenth13.nomoredomains.club';
 
 const checkResponse = (response) => {
   return response.ok
