@@ -42,7 +42,6 @@ export const run = async (envName) => {
     throw new Error('Config не найден');
   }
   config.NODE_ENV = envName;
-
   config.IS_PROD = isProduction;
 
   const requestLogger = winstonExpress.logger({
@@ -72,9 +71,9 @@ export const run = async (envName) => {
   app.use((req, res, next) => {
     const { origin } = req.headers;
 
-    if (allowedCors.some(e => e.test && e.test(origin)) || allowedCors.includes(origin)) {
+    if (allowedCors.some((e) => e.test && e.test(origin)) || allowedCors.includes(origin)) {
       res.header('Access-Control-Allow-Origin', origin);
-      res.header('Access-Control-Allow-Credentials', true)
+      res.header('Access-Control-Allow-Credentials', true);
     }
     const { method } = req;
     const requestHeaders = req.headers['access-control-request-headers'];
