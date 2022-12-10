@@ -2,8 +2,8 @@ import path from 'path';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import express from 'express';
+import cors from 'cors';
 import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
 import winston from 'winston';
 import winstonExpress from 'express-winston';
 import { errors, isCelebrateError } from 'celebrate';
@@ -19,12 +19,11 @@ import { auth } from './middlewares/auth.js';
 
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const allowedCors = [
+const allowedOrigins = [
   'https://praktikum.tk',
   'http://praktikum.tk',
   'localhost:3001',
   'http://localhost:3001',
-  'http://127.0.0.1:3001',
   /(https|http)?:\/\/(?:www\.|(?!www))13Thirteenth13.nomoredomains.club\/[a-z]+\/|[a-z]+\/|[a-z]+(\/|)/,
 ];
 
@@ -65,28 +64,12 @@ export const run = async (envName) => {
   app.set('config', config);
   app.use(requestLogger);
   app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(cookieParser());
-  // CORS
-  app.use((req, res, next) => {
-    const { origin } = req.headers;
-
-    if (allowedCors.some((e) => e.test && e.test(origin)) || allowedCors.includes(origin)) {
-      res.header('Access-Control-Allow-Origin', origin);
-      res.header('Access-Control-Allow-Credentials', true);
-    }
-    const { method } = req;
-    const requestHeaders = req.headers['access-control-request-headers'];
-    const DEFAULT_ALLOWED_METHODS = 'GET,HEAD,PUT,PATCH,POST,DELETE';
-
-    if (method === 'OPTIONS') {
-      res.header('Access-Control-Allow-Methods', DEFAULT_ALLOWED_METHODS);
-      res.header('Access-Control-Allow-Headers', requestHeaders);
-      return res.end();
-    }
-
-    next();
-  });
+  app.use(cors(
+    {
+      origin: config.IS_PROD ? allowedOrigins : '*',
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    },
+  ));
 
   app.get('/crash-test', () => {
     setTimeout(() => {

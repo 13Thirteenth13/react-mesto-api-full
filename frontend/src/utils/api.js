@@ -17,7 +17,6 @@ class Api {
   getUserInfo() {
     return fetch(`${this._url}/users/me`, {
       method: "GET",
-      credentials: "include",
       headers: this._headers
     })
       .then((res) => this._checkServerResponse(res));
@@ -52,7 +51,6 @@ class Api {
   getInitialCards() {
     return fetch(`${this._url}/cards`, {
       method: "GET",
-      credentials: "include",
       headers: this._headers
     })
       .then((res) => this._checkServerResponse(res));
@@ -97,7 +95,9 @@ class Api {
 
 const api = new Api({
   url: 'https://api.13Thirteenth13.nomoredomains.club',
+  /* url: 'http://localhost:3000', */
   headers: {
+    'Accept': 'application/json',
     'Content-Type': 'application/json'
   }
 });
